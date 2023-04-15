@@ -1,9 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:instagram_clone_flutter/firebase/auth.dart';
+import 'package:instagram_clone_flutter/utils/colors.dart';
+import 'package:instagram_clone_flutter/utils/utils.dart';
 import '../components/primary_button.dart';
 import '../components/text_field_input.dart';
 import '../utils/constants.dart';
+import 'home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -17,10 +24,44 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+
+  // Some Variables
+  Uint8List? _image;
+  bool isLoading = false;
+
+  // Go to Home Screen
+  void navigateToHomeScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+    );
+  }
+
+  void selectImage() async {
+    final pickedImage = await pickimage(ImageSource.gallery);
+    setState(() {
+      _image = pickedImage;
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _fullNameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -37,13 +78,43 @@ class _SignupScreenState extends State<SignupScreen> {
                       color: Colors.white,
                     ),
                     const SizedBox(
-                      height: 64,
+                      height: 24,
+                    ),
+                    // Circular Widget to accept an image
+                    Stack(
+                      children: [
+                        _image != null
+                            ? CircleAvatar(
+                                radius: 64,
+                                backgroundImage: MemoryImage(_image!),
+                              )
+                            : const CircleAvatar(
+                                radius: 64,
+                                backgroundColor: blueColor,
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 64,
+                                ),
+                              ),
+                        Positioned(
+                          bottom: -10,
+                          left: 80,
+                          child: IconButton(
+                            onPressed: selectImage,
+                            icon: const Icon(Icons.add_a_photo),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 24,
                     ),
 
                     //TextField input for name
                     TextFieldInput(
                       controller: _fullNameController,
-                      placeholder: 'Full Name',
+                      placeholder: 'Name',
                       keyboardType: TextInputType.text,
                     ),
                     const SizedBox(
@@ -77,8 +148,51 @@ class _SignupScreenState extends State<SignupScreen> {
                     const SizedBox(
                       height: 16,
                     ),
+                    TextFieldInput(
+                      controller: _bioController,
+                      placeholder: 'Bio',
+                      keyboardType: TextInputType.text,
+                    ),
+                    const SizedBox(
+                      height: 16,
+                    ),
                     // Login Button
-                    PrimaryButton(title: 'Signup', onTap: () {}),
+                    PrimaryButton(
+                      isLoading: isLoading,
+                      title: 'Signup',
+                      onTap: () async {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        final Auth auth = Auth();
+                        final Map response = await auth.signupUser(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                            fullName: _fullNameController.text,
+                            bio: _bioController.text,
+                            username: _usernameController.text,
+                            profile: _image);
+                        if (response['success']) {
+                          setState(() {
+                            isLoading = false;
+                          });
+                          navigateToHomeScreen();
+                        } else {
+                          setState(() {
+                            isLoading = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.white,
+                              content: Text(
+                                response['err'],
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),

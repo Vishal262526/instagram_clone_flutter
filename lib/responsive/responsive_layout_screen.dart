@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone_flutter/utils/colors.dart';
 import 'package:instagram_clone_flutter/utils/dimensions.dart';
+import 'package:provider/provider.dart';
 
-class ResponsiveLayout extends StatelessWidget {
+import '../providers/user_provider.dart';
+
+class ResponsiveLayout extends StatefulWidget {
   const ResponsiveLayout({
     super.key,
     required this.webScreen,
@@ -12,13 +16,54 @@ class ResponsiveLayout extends StatelessWidget {
   final Widget mobileScreen;
 
   @override
+  State<ResponsiveLayout> createState() => _ResponsiveLayoutState();
+}
+
+class _ResponsiveLayoutState extends State<ResponsiveLayout> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print("Init State is Starting");
+    addData();
+    print("Init State is End");
+  }
+
+  void addData() async {
+    UserProvider userProvider =
+        Provider.of<UserProvider>(context, listen: false);
+    await userProvider.refreshUser();
+    print("Refreshed");
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > webScreenSize) {
-          return webScreen;
+    print("Build is Called");
+    return FutureBuilder(
+      future: Provider.of<UserProvider>(context).refreshUser(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.active) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > webScreenSize) {
+                return widget.webScreen;
+              } else {
+                return widget.mobileScreen;
+              }
+            },
+          );
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            alignment: Alignment.center,
+            child: const CircularProgressIndicator(
+              backgroundColor: Colors.transparent,
+              color: blueColor,
+            ),
+          );
         } else {
-          return mobileScreen;
+          return Container(
+            child: const Text("Something Went Wrong"),
+          );
         }
       },
     );

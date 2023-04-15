@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/components/primary_button.dart';
 import 'package:instagram_clone_flutter/components/text_field_input.dart';
+import 'package:instagram_clone_flutter/firebase/auth.dart';
+import 'package:instagram_clone_flutter/screens/home_screen.dart';
 import 'package:instagram_clone_flutter/screens/signup_screen.dart';
 import 'package:instagram_clone_flutter/utils/constants.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-
   @override
   void dispose() {
     // TODO: implement dispose
@@ -25,6 +26,33 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
+  void showSnackbar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: Colors.white,
+        content: Text(
+          text,
+        ),
+      ),
+    );
+  }
+
+  void navigateToHomeScreen() {
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => const HomeScreen(),
+    //   ),
+    // );
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const HomeScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +94,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 16,
                   ),
                   // Login Button
-                  PrimaryButton(title: 'Login', onTap: () {}),
+                  PrimaryButton(
+                    title: 'Login',
+                    onTap: () async {
+                      final Auth auth = Auth();
+
+                      final res = await auth.loginUser(
+                          _emailController.text, _passwordController.text);
+                      if (res['success']) {
+                        navigateToHomeScreen();
+                      } else {
+                        showSnackbar(res['err'].toString());
+                      }
+                    },
+                    isLoading: false,
+                  ),
                 ],
               ),
             ),
