@@ -17,9 +17,8 @@ class Auth {
 
     DocumentSnapshot snap =
         await firestore.collection('users').doc(currentUser.uid).get();
-    final data = model.User.fromDocumentSnapshot(snap);    
-    print("Data in Auth...................");
-    return model.User.fromDocumentSnapshot(snap);
+    final data = model.User.fromDocumentSnapshot(snap);
+    return data;
   }
 
   Future<Map> signupUser({

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/utils/colors.dart';
-import 'package:instagram_clone_flutter/utils/dimensions.dart';
+import 'package:instagram_clone_flutter/utils/global_variables.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/user_provider.dart';
@@ -20,29 +20,38 @@ class ResponsiveLayout extends StatefulWidget {
 }
 
 class _ResponsiveLayoutState extends State<ResponsiveLayout> {
+  late Future refreshUser;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    print("Init State is Starting");
-    addData();
+    // print("Init State is Starting");
+    refreshUser =
+        Provider.of<UserProvider>(context, listen: false).refreshUser();
+    // print("User Refreshed");
+    // addData();
+
     print("Init State is End");
   }
 
-  void addData() async {
-    UserProvider userProvider =
-        Provider.of<UserProvider>(context, listen: false);
-    await userProvider.refreshUser();
-    print("Refreshed");
-  }
+  // void addData() async {
+  //   UserProvider userProvider =
+  //       Provider.of<UserProvider>(context, listen: false);
+  //   await userProvider.refreshUser();
+  //   print("Refreshed");
+  // }
 
   @override
   Widget build(BuildContext context) {
     print("Build is Called");
     return FutureBuilder(
-      future: Provider.of<UserProvider>(context).refreshUser(),
+      future: refreshUser,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          print("Checking user data ..............");
+          print(Provider.of<UserProvider>(context, listen: false).getUser);
+
           return LayoutBuilder(
             builder: (context, constraints) {
               if (constraints.maxWidth > webScreenSize) {

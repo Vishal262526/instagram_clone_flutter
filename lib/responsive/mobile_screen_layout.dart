@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_clone_flutter/models/user.dart';
-import 'package:instagram_clone_flutter/providers/user_provider.dart';
-import 'package:provider/provider.dart';
+
+import 'package:instagram_clone_flutter/utils/colors.dart';
+import 'package:instagram_clone_flutter/utils/global_variables.dart';
 
 class MobileScreenLayout extends StatefulWidget {
   const MobileScreenLayout({super.key});
@@ -11,22 +11,32 @@ class MobileScreenLayout extends StatefulWidget {
 }
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
+  int _currentIndex = 0;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('..........................');
-    print("Mobile Screen init state is called");
-    final user = Provider.of<UserProvider>(context, listen: false).getUser;
-    print(user);
   }
 
   @override
   Widget build(BuildContext context) {
-    User? user = Provider.of<UserProvider>(context, listen: false).getUser;
     return Scaffold(
-      appBar: AppBar(
-        title: Text("{$User['name']}"),
+      body: screens.elementAt(_currentIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        backgroundColor: mobileBackgroundColor,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: secondaryColor,
+        // enableFeedback: false
+        type: BottomNavigationBarType.fixed,
+        // enableFeedback: false,
+        onTap: (value) {
+          setState(() {
+            _currentIndex = value;
+          });
+        },
+        items: bottomNavItems,
       ),
     );
   }
