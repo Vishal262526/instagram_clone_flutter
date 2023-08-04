@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
-import 'package:instagram_clone_flutter/utils/colors.dart';
+import 'package:flutter/material.dart';
+import 'package:instagram_clone_flutter/firebase/auth.dart';
+import 'package:instagram_clone_flutter/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -7,14 +8,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.center,
-      child: const Text(
-        "Profile Screen",
-        style: TextStyle(
-          fontSize: 20,
-          color: primaryColor,
-        ),
-      ),
-    );
+        alignment: Alignment.center,
+        child: ElevatedButton(
+            onPressed: () async {
+              await Auth.auth.signOut();
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()));
+            },
+            child: Text("Logout")));
   }
 }
