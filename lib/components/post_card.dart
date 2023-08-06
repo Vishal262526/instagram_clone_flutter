@@ -1,11 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/firebase/firestore.dart';
 import 'package:instagram_clone_flutter/models/post.dart';
 import 'package:instagram_clone_flutter/providers/user_provider.dart';
+import 'package:instagram_clone_flutter/screens/comment_screen.dart';
 import 'package:instagram_clone_flutter/utils/colors.dart';
 import 'package:provider/provider.dart';
 
-class PostCard extends StatelessWidget {
+class PostCard extends StatefulWidget {
   const PostCard({
     super.key,
     required this.post,
@@ -14,9 +16,67 @@ class PostCard extends StatelessWidget {
   final Post post;
 
   @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  bool isDoubleTap = false;
+  int commentCount = 0;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getCommentCount();
+    super.initState();
+  }
+
+  void getCommentCount() async {
+    try {
+      final QuerySnapshot snap = await FirestoreMethods.firestore
+          .collection('post')
+          .doc(widget.post.id)
+          .collection('comments')
+          .get();
+      setState(() {
+        commentCount = snap.docs.length;
+      });
+    } catch (e) {
+      print("Something went wrong........");
+      commentCount = 0;
+    }
+  }
+
+  void _deletePost() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text("Post"),
+          children: [
+            SimpleDialogOption(
+              onPressed: () async {
+                goBack();
+                await FirestoreMethods.deletePost(postId: widget.post.id);
+              },
+              padding: const EdgeInsets.all(20.0),
+              child: const Text("Delete Post"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void goBack() {
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     bool isLiked = false;
-    if (post.likes.contains(
+    if (widget.post.likes.contains(
       Provider.of<UserProvider>(context, listen: false).getUser!.uid,
     )) {
       isLiked = true;
@@ -41,19 +101,24 @@ class PostCard extends StatelessWidget {
                     backgroundColor: primaryColor,
                   ),
                   Text(
-                    post.username,
+                    widget.post.username,
                     style: const TextStyle(
                       color: primaryColor,
                     ),
                   )
                 ],
               ),
-              IconButton(
+              if (widget.post.uid ==
+                  Provider.of<UserProvider>(context, listen: false)
+                      .getUser!
+                      .uid)
+                IconButton(
                   padding: const EdgeInsets.all(0.0),
-                  onPressed: () {},
+                  onPressed: _deletePost,
                   icon: const Icon(
                     Icons.more_horiz,
-                  ))
+                  ),
+                )
             ],
           ),
         ),
@@ -62,7 +127,7 @@ class PostCard extends StatelessWidget {
           height: 350,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage(post.postImage),
+              image: NetworkImage(widget.post.postImage),
               fit: BoxFit.cover,
             ),
           ),
@@ -86,13 +151,13 @@ class PostCard extends StatelessWidget {
                             Provider.of<UserProvider>(context, listen: false)
                                 .getUser!
                                 .uid,
-                            post.id);
+                            widget.post.id);
                       } else {
                         await FirestoreMethods.insertLike(
                             Provider.of<UserProvider>(context, listen: false)
                                 .getUser!
                                 .uid,
-                            post.id);
+                            widget.post.id);
                       }
                     },
                     icon: Icon(
@@ -104,7 +169,16 @@ class PostCard extends StatelessWidget {
                   IconButton(
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CommentScreen(
+                            postId: widget.post.id,
+                          ),
+                        ),
+                      );
+                    },
                     icon: const Icon(
                       Icons.comment_outlined,
                       color: primaryColor,
@@ -146,7 +220,7 @@ class PostCard extends StatelessWidget {
                 height: 4,
               ),
               Text(
-                "${post.likes.length} Likes",
+                "${widget.post.likes.length} Likes",
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(
@@ -159,13 +233,13 @@ class PostCard extends StatelessWidget {
                   ),
                   children: [
                     TextSpan(
-                      text: "${post.username} ",
+                      text: "${widget.post.username} ",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
-                      text: post.caption,
+                      text: widget.post.caption,
                     ),
                   ],
                 ),
@@ -174,10 +248,19 @@ class PostCard extends StatelessWidget {
                 height: 4,
               ),
               InkWell(
-                onTap: () {},
-                child: const Text(
-                  "View all are 200 Comments",
-                  style: TextStyle(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CommentScreen(
+                        postId: widget.post.id,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  "View all are $commentCount Comments",
+                  style: const TextStyle(
                     fontSize: 16,
                     color: secondaryColor,
                   ),
@@ -189,7 +272,7 @@ class PostCard extends StatelessWidget {
               InkWell(
                 onTap: () {},
                 child: Text(
-                  post.publishedDate,
+                  widget.post.publishedDate.toString(),
                   style: const TextStyle(
                     fontSize: 16,
                     color: secondaryColor,

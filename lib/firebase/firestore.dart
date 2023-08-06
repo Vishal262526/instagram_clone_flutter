@@ -71,17 +71,60 @@ class FirestoreMethods {
     }
   }
 
-  // static Future<bool> addComment(String uid, String postId, String commentText) async {
-  //   try {
-  //     final DocumentReference ref = firestore.collection('post').doc(postId);
-  //     ref.collection("comments").add({
+  static Future<bool> addComment({
+    required String uid,
+    required String name,
+    required String postId,
+    required String commentText,
+    required String profileUrl,
+  }) async {
+    try {
+      final DocumentReference ref = firestore.collection('post').doc(postId);
+      final String commentId = const Uuid().v1();
+      await ref.collection("comments").doc(commentId).set(
+        {
+          "profile": profileUrl,
+          "name": name,
+          "uid": uid,
+          "comment": commentText,
+          "datePublished": DateTime.now(),
+        },
+      );
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
+  }
 
-  //     })
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getComments({
+    required String postId,
+  }) {
+    return firestore
+        .collection('post')
+        .doc(postId)
+        .collection('comments')
+        .snapshots();
+  }
 
-  //     return true;
-  //   } catch (e) {
-  //     print(e.toString());
-  //     return false;
-  //   }
-  // }
+  static Future<bool> deletePost({
+    required String postId,
+  }) async {
+    try {
+      await firestore.collection('post').doc(postId).delete();
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> getSearchedUser(
+    String searchUserValue,
+  ) {
+    return firestore
+        .collection('users')
+        .where('username', isGreaterThanOrEqualTo: searchUserValue)
+        .get();
+  }
 }

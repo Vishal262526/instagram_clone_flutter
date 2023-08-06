@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/components/primary_button.dart';
 import 'package:instagram_clone_flutter/components/text_field_input.dart';
 import 'package:instagram_clone_flutter/firebase/auth.dart';
-import 'package:instagram_clone_flutter/screens/home_screen.dart';
+import 'package:instagram_clone_flutter/responsive/mobile_screen_layout.dart';
+import 'package:instagram_clone_flutter/responsive/responsive_layout_screen.dart';
+import 'package:instagram_clone_flutter/responsive/web_screen_layout.dart';
 import 'package:instagram_clone_flutter/screens/signup_screen.dart';
 import 'package:instagram_clone_flutter/utils/constants.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -18,6 +20,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,16 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void navigateToHomeScreen() {
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => const HomeScreen(),
-    //   ),
-    // );
-
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const HomeScreen(),
+        builder: (context) => const ResponsiveLayout(
+            webScreen: WebScreenLayout(), mobileScreen: MobileScreenLayout()),
       ),
     );
   }
@@ -95,19 +92,29 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   // Login Button
                   PrimaryButton(
+                    isLoading: _isLoading,
                     title: 'Login',
                     onTap: () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
                       final Auth auth = Auth();
 
                       final res = await auth.loginUser(
                           _emailController.text, _passwordController.text);
                       if (res['success']) {
+                        _isLoading = false;
+                        if (mounted) {
+                          setState(() {});
+                        }
                         navigateToHomeScreen();
                       } else {
+                        setState(() {
+                          _isLoading = false;
+                        });
                         showSnackbar(res['err'].toString());
                       }
                     },
-                    isLoading: false,
                   ),
                 ],
               ),

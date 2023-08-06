@@ -31,10 +31,6 @@ class MyApp extends StatelessWidget {
         title: 'Flutter Demo',
         theme: ThemeData.dark()
             .copyWith(scaffoldBackgroundColor: mobileBackgroundColor),
-        // home: const ResponsiveLayout(
-        //   webScreen: WebScreenLayout(),
-        //   mobileScreen: MobileScreenLayout(),
-        // ),
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
