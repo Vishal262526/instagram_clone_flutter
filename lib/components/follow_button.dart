@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/utils/colors.dart';
 
-class PrimaryButton extends StatelessWidget {
-  const PrimaryButton({
+class FollowButton extends StatelessWidget {
+  const FollowButton({
     super.key,
     required this.title,
     required this.onTap,
     required this.isLoading,
-    this.height = 50,
+    required this.borderColor,
     this.backgroundColor = blueColor,
   });
 
   final String title;
   final VoidCallback onTap;
   final bool isLoading;
-  final double height;
+  final Color borderColor;
   final Color backgroundColor;
 
   @override
@@ -22,12 +22,16 @@ class PrimaryButton extends StatelessWidget {
     return InkWell(
       onTap: isLoading ? null : onTap,
       child: Container(
-        height: height,
+        height: 30,
         width: double.infinity,
         alignment: Alignment.center,
         // padding: const Edge=Insets.symmetric(vertical: 8, horizontal:8),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8.0), color: backgroundColor),
+            borderRadius: BorderRadius.circular(5.0),
+            color: backgroundColor,
+            border: Border.all(
+              color: borderColor,
+            )),
         child: isLoading
             ? const CircularProgressIndicator(
                 backgroundColor: Colors.transparent,

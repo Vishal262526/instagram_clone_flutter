@@ -127,4 +127,16 @@ class FirestoreMethods {
         .where('username', isGreaterThanOrEqualTo: searchUserValue)
         .get();
   }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> getUserData(
+    String userId,
+  ) async {
+    return await firestore.collection('users').doc(userId).get();
+  }
+
+  static Future<int> getTotalPost(String uid) async {
+    final QuerySnapshot<Map<String, dynamic>> post =
+        await firestore.collection('post').where("uid", isEqualTo: uid).get();
+    return post.docs.length;
+  }
 }
