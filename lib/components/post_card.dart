@@ -97,8 +97,11 @@ class _PostCardState extends State<PostCard> {
                 direction: Axis.horizontal,
                 spacing: 8.0,
                 children: [
-                  const CircleAvatar(
-                    backgroundColor: primaryColor,
+                  CircleAvatar(
+                    radius: 18,
+                    child: widget.post.profileImage != "no"
+                        ? Image.network(widget.post.profileImage)
+                        : Image.asset("assets/user.png"),
                   ),
                   Text(
                     widget.post.username,

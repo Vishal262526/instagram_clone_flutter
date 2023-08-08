@@ -1,6 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class CommentCard extends StatelessWidget {
   const CommentCard({
@@ -25,10 +23,10 @@ class CommentCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(
-              profileUrl,
-            ),
             radius: 18,
+            child: profileUrl != "no"
+                ? Image.network(profileUrl)
+                : Image.asset("assets/user.png"),
           ),
           const SizedBox(
             width: 16,

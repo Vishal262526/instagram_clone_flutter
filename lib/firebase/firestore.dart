@@ -139,4 +139,10 @@ class FirestoreMethods {
         await firestore.collection('post').where("uid", isEqualTo: uid).get();
     return post.docs.length;
   }
+
+  static Future<DocumentSnapshot> getSingleUserData(String uid) async {
+    final DocumentSnapshot _user =
+        await firestore.collection('users').doc(uid).get();
+    return _user;
+  }
 }

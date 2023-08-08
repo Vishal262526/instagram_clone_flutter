@@ -1,4 +1,3 @@
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -46,7 +45,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         uid: user!.uid,
         username: user!.username,
         postImage: postImage,
-        profileImage: user!.profileUrl,
+        profileImage: user!.profileUrl!,
         caption: _captionController.text,
       );
 
@@ -172,8 +171,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   children: [
                     CircleAvatar(
                       radius: 25,
-                      // backgroundColor: primaryColor,
-                      backgroundImage: NetworkImage(user!.profileUrl),
+                      child: user!.profileUrl != "no"
+                          ? Image.network(user!.profileUrl)
+                          : Image.asset("assets/user.png"),
                     ),
                     Expanded(
                       child: Container(
