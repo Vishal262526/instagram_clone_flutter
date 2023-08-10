@@ -25,9 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get();
 
-    setState(() {
-      username = (user.data() as Map)['name'];
-    });
+    if (mounted) {
+      setState(() {
+        username = (user.data() as Map)['name'];
+      });
+    }
   }
 
   @override

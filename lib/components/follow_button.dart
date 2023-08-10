@@ -9,6 +9,7 @@ class FollowButton extends StatelessWidget {
     required this.isLoading,
     required this.borderColor,
     this.backgroundColor = blueColor,
+    this.forgroundColor = Colors.white,
   });
 
   final String title;
@@ -16,6 +17,7 @@ class FollowButton extends StatelessWidget {
   final bool isLoading;
   final Color borderColor;
   final Color backgroundColor;
+  final Color forgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +41,10 @@ class FollowButton extends StatelessWidget {
               )
             : Text(
                 title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                ),
+                style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: forgroundColor),
               ),
       ),
     );

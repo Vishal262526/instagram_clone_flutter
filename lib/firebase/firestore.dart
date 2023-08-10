@@ -140,9 +140,40 @@ class FirestoreMethods {
     return post.docs.length;
   }
 
-  static Future<DocumentSnapshot> getSingleUserData(String uid) async {
-    final DocumentSnapshot _user =
-        await firestore.collection('users').doc(uid).get();
-    return _user;
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> getSingleUserData(
+      String uid) {
+    final Stream<DocumentSnapshot<Map<String, dynamic>>> userSnap =
+        firestore.collection('users').doc(uid).snapshots();
+    return userSnap;
+  }
+
+  static Future<bool> addFollowing(String uid, String friendId) async {
+    try {
+      await firestore.collection('users').doc(uid).update({
+        "following": FieldValue.arrayUnion([friendId]),
+      });
+      await firestore.collection('users').doc(friendId).update({
+        "followers": FieldValue.arrayUnion([friendId]),
+      });
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
+  }
+
+  static Future<bool> removeFollowing(String uid, String friendId) async {
+    try {
+      await firestore.collection('users').doc(uid).update({
+        "following": FieldValue.arrayRemove([friendId]),
+      });
+      await firestore.collection('users').doc(friendId).update({
+        "followers": FieldValue.arrayRemove([friendId]),
+      });
+      return true;
+    } catch (e) {
+      print(e.toString());
+      return false;
+    }
   }
 }

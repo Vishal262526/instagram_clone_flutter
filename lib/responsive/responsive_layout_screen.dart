@@ -50,7 +50,9 @@ class _ResponsiveLayoutState extends State<ResponsiveLayout> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           print("Checking user data ..............");
-          print(Provider.of<UserProvider>(context, listen: false).getUser);
+          print(
+            Provider.of<UserProvider>(context, listen: false).getUser,
+          );
 
           return LayoutBuilder(
             builder: (context, constraints) {

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone_flutter/components/follow_button.dart';
+import 'package:instagram_clone_flutter/firebase/auth.dart';
 import 'package:instagram_clone_flutter/firebase/firestore.dart';
-import 'package:instagram_clone_flutter/models/user.dart' as UserModel;
+import 'package:instagram_clone_flutter/models/user.dart' as userModel;
 import 'package:instagram_clone_flutter/screens/login_screen.dart';
 import 'package:instagram_clone_flutter/utils/colors.dart';
 import 'package:instagram_clone_flutter/providers/user_provider.dart'
@@ -12,9 +14,9 @@ import 'package:provider/provider.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
     super.key,
-    this.userId,
+    required this.userId,
   });
-  final String? userId;
+  final String userId;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -22,8 +24,9 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
-  Future? _user;
+  late Stream<DocumentSnapshot<Map<String, dynamic>>> _user;
   int totalPost = 0;
+  bool isFollowing = false;
 
   @override
   void initState() {
@@ -34,16 +37,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+
+    super.dispose();
+  }
+
   void initUser() async {
-    if (widget.userId != null) {
-      _user = FirestoreMethods.getSingleUserData(widget.userId!);
-      totalPost = await FirestoreMethods.getTotalPost(widget.userId!);
-    }
-    totalPost = await FirestoreMethods.getTotalPost(
-      Provider.of<userProvider.UserProvider>(context, listen: false)
-          .getUser!
-          .uid,
-    );
+    final userModel.User currentUser =
+        Provider.of<userProvider.UserProvider>(context, listen: false).getUser!;
+    print(
+        "Current user follwing data is .............. ${currentUser.following}");
+    _user = FirestoreMethods.getSingleUserData(widget.userId);
+    totalPost = await FirestoreMethods.getTotalPost(widget.userId);
+
+    isFollowing = currentUser.following.contains(widget.userId);
     setState(() {});
   }
 
@@ -59,32 +68,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
-      child: widget.userId != null
-          ? FutureBuilder(
-              future: _user,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(snapshot.error.toString()),
-                  );
-                }
+        length: 2,
+        child: StreamBuilder(
+          stream: _user,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(snapshot.error.toString()),
+              );
+            }
 
-                final UserModel.User _user =
-                    UserModel.User.fromDocumentSnapshot(snapshot.data);
+            final userModel.User _user =
+                userModel.User.fromDocumentSnapshot(snapshot.data!);
 
-                return profileWdigets(_user);
-              },
-            )
-          : profileWdigets(
-              Provider.of<userProvider.UserProvider>(context, listen: false)
-                  .getUser!),
-    );
+            return profileWdigets(_user);
+          },
+        ));
   }
 
   Widget buildStackColumn(int num, String label) {
@@ -114,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget profileWdigets(UserModel.User user) {
+  Widget profileWdigets(userModel.User user) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
@@ -130,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   print(e.toString());
                 }
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.logout_outlined,
               ))
         ],
@@ -184,13 +188,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 children: [
                   Expanded(
-                      child: FollowButton(
-                    title: 'Edit Profile',
-                    borderColor: primaryColor,
-                    backgroundColor: Colors.transparent,
-                    onTap: () {},
-                    isLoading: false,
-                  ))
+                    child: widget.userId != Auth.auth.currentUser!.uid
+                        ? FollowButton(
+                            title: isFollowing ? "Unfollow" : "follow",
+                            borderColor: Colors.transparent,
+                            backgroundColor:
+                                isFollowing ? primaryColor : blueColor,
+                            forgroundColor:
+                                isFollowing ? Colors.black : primaryColor,
+                            onTap: () async {
+                              if (!isFollowing) {
+                                final bool followingStatus =
+                                    await FirestoreMethods.addFollowing(
+                                        Provider.of<userProvider.UserProvider>(
+                                                context,
+                                                listen: false)
+                                            .getUser!
+                                            .uid,
+                                        widget.userId);
+                                if (followingStatus) {
+                                  isFollowing = true;
+                                  await Provider.of<userProvider.UserProvider>(
+                                          context,
+                                          listen: false)
+                                      .refreshUser();
+
+                                  print("Refreshed --------------- true");
+
+                                  setState(() {});
+                                }
+                              } else {
+                                final bool removeFollowingStatus =
+                                    await FirestoreMethods.removeFollowing(
+                                        Provider.of<userProvider.UserProvider>(
+                                                context,
+                                                listen: false)
+                                            .getUser!
+                                            .uid,
+                                        widget.userId!);
+                                if (removeFollowingStatus) {
+                                  isFollowing = false;
+                                  await Provider.of<userProvider.UserProvider>(
+                                          context,
+                                          listen: false)
+                                      .refreshUser();
+                                  print("Refreshed --------------- false");
+
+                                  setState(() {});
+                                }
+                              }
+                            },
+                            isLoading: false,
+                          )
+                        : FollowButton(
+                            title: "Edit Profile",
+                            borderColor: primaryColor,
+                            backgroundColor: Colors.transparent,
+                            onTap: () {},
+                            isLoading: false,
+                          ),
+                  )
                 ],
               ),
               const SizedBox(
